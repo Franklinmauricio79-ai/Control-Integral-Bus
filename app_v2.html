@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control Integral del Bus</title>
+  <style>
+    :root{--bg:#f3f7fb;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#d8e2ee;--accent:#0f4c81;--accent2:#1c6bb0;--ok:#15803d;--warn:#b45309;--danger:#b91c1c;--soft-green:#f0fdf4;--soft-yellow:#fffbeb;--soft-red:#fef2f2;--shadow:0 10px 28px rgba(15,76,129,.10)}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#edf4fb 0%,var(--bg) 100%);color:var(--ink)}
+    .wrap{max-width:1220px;margin:0 auto;padding:24px}.hero{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:22px;padding:28px;box-shadow:var(--shadow);margin-bottom:18px}
+    .hero h1{margin:0 0 8px;font-size:32px}.hero p{margin:0;line-height:1.5}.status-grid{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px}
+    .panel,.card,.contact-card,.login-box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+    .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}.value{font-size:28px;font-weight:700;margin-top:4px}.sub{color:var(--muted);font-size:14px;margin-top:6px;line-height:1.4}
+    .progress .bar{width:100%;height:12px;background:#e7eef7;border-radius:999px;overflow:hidden;margin-top:10px}.progress .bar span{display:block;width:0;height:100%;background:linear-gradient(90deg,#22c55e,#16a34a)}
+    .status-ok{border-left:6px solid #16a34a;background:var(--soft-green)}.status-warn{border-left:6px solid #d97706;background:var(--soft-yellow)}.status-danger{border-left:6px solid #dc2626;background:var(--soft-red)}.status-neutral{border-left:6px solid #9ca3af}
+    .actions,.tabs,.contact-actions,.contacts-toolbar{display:flex;gap:10px;flex-wrap:wrap}.actions,.tabs,.contacts-toolbar{margin-bottom:16px}
+    button,.contact-actions a{border:none;border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer;text-decoration:none}.primary{background:var(--accent);color:#fff}.secondary{background:#e9f1fb;color:var(--accent)}.danger-btn{background:#fee2e2;color:#b91c1c}
+    .tab-btn{background:#eef4fb;color:var(--accent);border:1px solid #d7e6f7}.tab-btn.active{background:var(--accent);color:#fff}.tab-pane{display:none}.tab-pane.active{display:block}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}.mini,.tag{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;font-weight:700}.mini{background:#eef6ff;color:var(--accent);margin-bottom:10px}.tag{background:#f3f4f6;color:#374151;margin:0 6px 8px 0}
+    .checklist,.investment-list{display:grid;gap:12px}label.item{display:flex;gap:12px;align-items:flex-start;border:1px solid #edf2f8;border-radius:14px;padding:12px;cursor:pointer}label.item:hover{background:#f8fbff}
+    input[type="checkbox"]{width:18px;height:18px;margin-top:3px;accent-color:var(--ok);flex:0 0 auto}.txt{line-height:1.45}.txt strong{display:block}.muted{color:var(--muted)}.done{background:#f0fdf4!important;border-color:#bbf7d0!important}.done .txt{color:#14532d}
+    .search,.login-box input,.info-box input,.info-box textarea,.new-investment-box input,.new-investment-box textarea{flex:1;min-width:240px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);font-size:16px;width:100%}
+    .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}.contact-card h3{margin:0 0 6px;font-size:24px;color:var(--accent)}.contact-role{font-weight:700;margin-bottom:4px}.contact-meta{color:var(--muted);line-height:1.5;margin-bottom:14px}.phone{font-size:24px;font-weight:700;margin:6px 0 12px;word-break:break-word}.contact-actions a{background:#eef6ff;color:var(--accent);border:1px solid #d7e6f7}
+    .hint,.note{color:#37506b;line-height:1.5}.hint{background:#f8fbff;border:1px dashed #bfd7f0;border-radius:14px;padding:14px}.note{margin-top:18px;color:var(--muted);font-size:14px}.hide{display:none!important}
+    .login-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.login-box{max-width:420px;width:100%}.login-box h1{margin:0 0 8px;color:var(--accent)}.login-box p{margin:0 0 18px;color:var(--muted)}.login-box .row{margin-bottom:12px}.login-error{color:var(--danger);font-weight:700;min-height:22px;margin-top:8px}.hidden{display:none!important}
+    .info-box,.new-investment-box{display:grid;gap:12px}.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.meta-strip{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;margin-bottom:18px}.meta-value{font-size:18px;font-weight:700;margin-top:4px}.obs-area{min-height:110px;resize:vertical}.small{font-size:13px;color:var(--muted)}
+    @media (max-width:980px){.status-grid,.meta-strip{grid-template-columns:1fr 1fr}} @media (max-width:640px){.status-grid,.meta-strip{grid-template-columns:1fr}} @media print{.actions,.tabs,.contacts-toolbar,.new-investment-box button,.info-box button{display:none}.tab-pane{display:block!important}body{background:#fff}.hero{background:#fff;color:#000;border:1px solid #ddd;box-shadow:none}.panel,.card,.contact-card{box-shadow:none}}
+  </style>
+</head>
+<body>
+  <div id="loginView" class="login-shell">
+    <div class="login-box">
+      <h1>Control Integral del Bus</h1>
+      <p>Ingrese con el usuario y la clave asignados para abrir la herramienta.</p>
+      <div class="row"><input id="username" type="text" placeholder="Usuario" autocomplete="username" /></div>
+      <div class="row"><input id="password" type="password" placeholder="Clave" autocomplete="current-password" /></div>
+      <button id="loginBtn" class="primary" type="button" style="width:100%">Ingresar</button>
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </div>
+
+  <div id="appView" class="hidden">
+    <div class="wrap">
+      <section class="hero">
+        <h1>Control Integral del Bus</h1>
+        <p>Formato con pestañas separadas para operación, administración, contactos y mejoras. Incluye alertas automáticas por vencimiento de seguros y SOAT, además de avance real del checklist.</p>
+      </section>
+
+      <section class="meta-strip">
+        <div class="panel">
+          <div class="label">Persona que ingresa</div>
+          <div class="meta-value" id="editorNameView">No registrado</div>
+        </div>
+        <div class="panel">
+          <div class="label">Fecha</div>
+          <div class="meta-value" id="editorDateView">--</div>
+        </div>
+        <div class="panel">
+          <div class="label">Hora</div>
+          <div class="meta-value" id="editorTimeView">--</div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-bottom:18px;">
+        <div class="mini">Registro de edición</div>
+        <h2>Datos de quien diligencia</h2>
+        <div class="info-box">
+          <div class="info-grid">
+            <div><input id="editorName" type="text" placeholder="Nombre de la persona que ingresa" /></div>
+            <div><input id="editorDate" type="text" placeholder="Fecha" readonly /></div>
+            <div><input id="editorTime" type="text" placeholder="Hora" readonly /></div>
+          </div>
+          <div><textarea id="editorObs" class="obs-area" placeholder="Observaciones"></textarea></div>
+          <div><button id="saveEditorInfo" class="primary" type="button">Guardar datos de edición</button></div>
+        </div>
+      </section>
+
+      <section class="status-grid">
+        <div class="panel progress">
+          <div class="label">Avance general del checklist</div>
+          <div class="value"><span id="doneCount">0</span>/<span id="totalCount">0</span></div>
+          <div class="bar"><span id="barFill"></span></div>
+          <div class="sub" id="progressText">0% completado</div>
+        </div>
+        <div class="panel" id="betaCard">
+          <div class="label">Seguros contractual y extracontractual</div>
+          <div class="value" id="betaDays">--</div>
+          <div class="sub">Vencen el <strong>01/06/2026</strong><br><span id="betaDetail"></span></div>
+        </div>
+        <div class="panel" id="soatCard">
+          <div class="label">SOAT</div>
+          <div class="value" id="soatDays">--</div>
+          <div class="sub">Vence el <strong>25/11/2026</strong><br><span id="soatDetail"></span></div>
+        </div>
+        <div class="panel status-neutral">
+          <div class="label">Vehículo</div>
+          <div class="value" style="font-size:22px">Dongfeng</div>
+          <div class="sub">Placa <strong>LZU410</strong><br>Modelo <strong>2026</strong> | 42 pasajeros</div>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button class="primary" id="printBtn" type="button">Imprimir / Guardar PDF</button>
+        <button class="danger-btn" id="resetBtn" type="button">Reiniciar checklist</button>
+        <button class="secondary" id="logoutBtn" type="button">Cerrar sesión</button>
+      </section>
+
+      <section class="tabs">
+        <button class="tab-btn active" type="button" data-tab="operativo">Operativo</button>
+        <button class="tab-btn" type="button" data-tab="administrativo">Administrativo</button>
+        <button class="tab-btn" type="button" data-tab="contactos">Contactos</button>
+        <button class="tab-btn" type="button" data-tab="mejoras">Mejoras e inversiones</button>
+      </section>
+
+      <section class="tab-pane active" id="tab-operativo"><div class="grid">
+        <article class="card"><div class="mini">Operativo</div><h2>1. Verificaciones previas</h2><div class="checklist">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Verificar nivel de aceite de motor</strong><span class="muted">Confirmar que se encuentre dentro del rango operativo.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Verificar nivel de refrigerante</strong><span class="muted">Asegurar nivel adecuado antes de la operación.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Verificar nivel de líquido de frenos</strong><span class="muted">No iniciar operación con nivel bajo.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Revisar nivel de agua de las baterías</strong><span class="muted">Inspección mínima recomendada: cada 2 meses.</span></div></label>
+        </div></article>
+        <article class="card"><div class="mini">Operativo</div><h2>2. Sistema de AdBlue (úrea)</h2><div class="checklist">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Confirmar que la recarga se haga en el tanque de tapa azul</strong><span class="muted">Ubicado cerca de la cabina.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Usar úrea sellada con etiqueta 70/30</strong><span class="muted">Preferir producto debidamente identificado.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>No permitir que el nivel baje del 40%</strong><span class="muted">Mantener vigilancia frecuente del indicador.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Mantener el tanque preferiblemente lleno</strong><span class="muted">Reduce vacíos y riesgo de cristalización.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Encender el bus 1 o 2 veces por semana si permanece detenido</strong><span class="muted">Ayuda a prevenir cristalización de la úrea.</span></div></label>
+        </div></article>
+        <article class="card"><div class="mini">Operativo</div><h2>3. Conducción segura</h2><div class="checklist">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Conducir con especial precaución sobre reductores y baches</strong><span class="muted">El catalizador se encuentra en la parte baja del bus.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Usar freno de motor en pendientes largas</strong><span class="muted">Palanca ubicada debajo de la cabrilla, lado derecho.</span></div></label>
+        </div></article>
+        <article class="card"><div class="mini">Operativo</div><h2>4. Regeneración / sistema de desgasificación</h2><div class="checklist">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Si se enciende el testigo, detener el vehículo en un lugar seguro</strong><span class="muted">No continuar la marcha sin revisar la condición.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Esperar de 10 a 15 minutos para la regeneración</strong><span class="muted">Permitir que el sistema complete el proceso.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Si se requiere regeneración manual, presionar el botón del testigo durante 9 segundos</strong><span class="muted">Realizar el procedimiento 3 veces por 9 segundos cada una.</span></div></label>
+        </div></article>
+      </div></section>
+
+      <section class="tab-pane" id="tab-administrativo"><div class="grid">
+        <article class="card"><div class="mini">Administrativo</div><h2>1. Garantía y mantenimiento</h2><div class="checklist">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Confirmar que la garantía aplica únicamente en el concesionario de Bogotá</strong><span class="muted">Validar condiciones formales con el proveedor.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Programar el primer mantenimiento a los 2.500 km</strong><span class="muted">Registrar kilometraje y fecha prevista.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Programar mantenimientos posteriores cada 7.000 km</strong><span class="muted">Mantener trazabilidad del plan de servicio.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Evaluar envío de carta de posventa al concesionario</strong><span class="muted">Solicitar extensión del primer mantenimiento hasta los 7.000 km.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Consultar con Mario Buitrago la opción de cambio de filtros en Llanogrande, Villavicencio</strong><span class="muted">Pendiente de confirmación.</span></div></label>
+        </div></article>
+        <article class="card"><div class="mini">Administrativo</div><h2>2. Seguros y documentos</h2><div class="checklist">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Verificar vigencia de los seguros contractual y extracontractual</strong><span class="muted">Póliza vigente hasta el 01 de junio de 2026.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Verificar vigencia del SOAT</strong><span class="muted">SOAT vigente hasta el 25 de noviembre de 2026.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Gestionar renovación con anticipación</strong><span class="muted">Menos de 60 días activa alertas visuales.</span></div></label>
+        </div></article>
+        <article class="card"><div class="mini">Administrativo</div><h2>3. Gestión contractual</h2><div class="checklist">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Definir y acordar contrato de compraventa con Wilmer</strong><span class="muted">Formalizar condiciones y cierre documental.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Informar a Wilmer (Tibirita) cuando se formalice el contrato</strong><span class="muted">Notificar también el conductor asignado al vehículo.</span></div></label>
+        </div></article>
+        <article class="card"><div class="mini">Administrativo</div><h2>4. Datos principales del vehículo</h2><div class="hint"><strong>Marca:</strong> Dongfeng<br><strong>Placa:</strong> LZU410<br><strong>Clase:</strong> Bus<br><strong>Servicio:</strong> Especial / Público intermunicipal<br><strong>Modelo:</strong> 2026<br><strong>Capacidad:</strong> 42 pasajeros<br><strong>Tomador / propietario:</strong> Servicios Especiales Tibirita SAS</div></article>
+      </div></section>
+
+      <section class="tab-pane" id="tab-contactos">
+        <div class="contacts-toolbar"><input class="search" id="contactSearch" type="text" placeholder="Buscar por nombre, cargo, empresa o ubicación" /></div>
+        <div class="contact-grid">
+          <article class="contact-card contact-item" data-search="laura vendedora colombia ventas"><span class="tag">Ventas</span><span class="tag">Colombia</span><h3>Laura</h3><div class="contact-role">Vendedora</div><div class="contact-meta">Ubicación registrada: Colombia</div><div class="phone">+57 320 4334118</div><div class="contact-actions"><a href="tel:+573204334118">Llamar</a><a href="https://wa.me/573204334118" target="_blank">WhatsApp</a></div></article>
+          <article class="contact-card contact-item" data-search="jhon marcopolo marcopolo contacto"><span class="tag">Marcopolo</span><h3>Jhon Marcopolo</h3><div class="contact-role">Contacto comercial / soporte Marcopolo</div><div class="contact-meta">Número de contacto directo</div><div class="phone">+57 310 4868376</div><div class="contact-actions"><a href="tel:+573104868376">Llamar</a><a href="https://wa.me/573104868376" target="_blank">WhatsApp</a></div></article>
+          <article class="contact-card contact-item" data-search="mario buitrago asesor dongfeng filtros villavicencio compra vehiculos"><span class="tag">Dongfeng</span><span class="tag">Villavicencio</span><h3>Mario Buitrago</h3><div class="contact-role">Asesor Dongfeng</div><div class="contact-meta">Cambio de filtros en Villavicencio y compra de vehículos</div><div class="phone">+57 317 6467566</div><div class="contact-actions"><a href="tel:+573176467566">Llamar</a><a href="https://wa.me/573176467566" target="_blank">WhatsApp</a></div></article>
+          <article class="contact-card contact-item" data-search="david jefe taller dongfeng cuestiones tecnicas mecanicas mantenimientos bogota calle 80"><span class="tag">Taller</span><span class="tag">Bogotá</span><h3>David</h3><div class="contact-role">Jefe de Taller Dongfeng</div><div class="contact-meta">Cuestiones técnicas mecánicas y mantenimientos. Atención asociada al taller Dongfeng Calle 80.</div><div class="phone">+57 317 6467566</div><div class="contact-actions"><a href="tel:+573176467566">Llamar</a><a href="https://wa.me/573176467566" target="_blank">WhatsApp</a></div></article>
+          <article class="contact-card contact-item" data-search="dongfeng cll 80 taller servicio automotor bogota avenida boyaca 77a 41"><span class="tag">Empresa</span><span class="tag">Bogotá</span><h3>Dongfeng Cll 80</h3><div class="contact-role">Taller / Servicio automotor</div><div class="contact-meta">Av. Boyacá #77a - 41, Bogotá, Colombia</div><div class="phone">+57 317 6467566</div><div class="contact-actions"><a href="tel:+573176467566">Llamar</a><a href="https://wa.me/573176467566" target="_blank">WhatsApp</a></div></article>
+          <article class="contact-card contact-item" data-search="fabian tecnico marcopolo comandos tablero carroceria"><span class="tag">Marcopolo</span><h3>Fabián</h3><div class="contact-role">Técnico de Marcopolo</div><div class="contact-meta">Comandos, tablero y carrocería</div><div class="phone">+57 300 5454541</div><div class="contact-actions"><a href="tel:+573005454541">Llamar</a><a href="https://wa.me/573005454541" target="_blank">WhatsApp</a></div></article>
+          <article class="contact-card contact-item" data-search="servicios especiales tibirita sas setib viajes transporte chia cundinamarca"><span class="tag">Empresa</span><span class="tag">Chía</span><h3>Servicios Especiales Tibirita SAS</h3><div class="contact-role">Viajes y transporte</div><div class="contact-meta">Chía, Cundinamarca, Colombia</div><div class="phone">+57 321 2586776</div><div class="contact-actions"><a href="tel:+573212586776">Llamar</a><a href="https://wa.me/573212586776" target="_blank">WhatsApp</a></div></article>
+          <article class="contact-card contact-item" data-search="setib sas servicio automotor empresa whatsapp business"><span class="tag">Empresa</span><span class="tag">Servicio automotor</span><h3>Setib SAS</h3><div class="contact-role">Cuenta de empresa</div><div class="contact-meta">Contacto empresarial en WhatsApp Business</div><div class="phone">+57 310 8593889</div><div class="contact-actions"><a href="tel:+573108593889">Llamar</a><a href="https://wa.me/573108593889" target="_blank">WhatsApp</a></div></article>
+        </div>
+      </section>
+
+      <section class="tab-pane" id="tab-mejoras"><div class="grid">
+        <article class="card"><div class="mini">Mejoras e inversiones</div><h2>Lista de mejoras priorizadas</h2><div id="investmentList" class="investment-list">
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Cambio de llantas por labrado para destapado</strong><span class="muted">Evaluar tracción, vida útil y comportamiento del bus en vías no pavimentadas.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Instalación de cinta reflectiva</strong><span class="muted">Mejora visibilidad y seguridad operativa, especialmente en condiciones nocturnas.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Oscurecer vidrios</strong><span class="muted">Validar cumplimiento normativo y beneficio en confort térmico y visual.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Revisar si es necesario cambiar la altura del embrague</strong><span class="muted">Solicitar validación técnica según ergonomía y desempeño del conductor.</span></div></label>
+          <label class="item"><input type="checkbox" class="task"><div class="txt"><strong>Instalar forros para proteger la silletería</strong><span class="muted">Aumenta durabilidad y facilita el mantenimiento interior.</span></div></label>
+        </div></article>
+        <article class="card"><div class="mini">Nueva inversión</div><h2>Agregar nueva inversión o mejora</h2><div class="new-investment-box">
+          <input id="newInvestmentTitle" type="text" placeholder="Nombre de la inversión o mejora" />
+          <textarea id="newInvestmentDesc" class="obs-area" placeholder="Descripción"></textarea>
+          <button id="addInvestmentBtn" class="primary" type="button">Agregar</button>
+        </div></article>
+      </div></section>
+
+      <div class="note">El avance del checklist queda guardado automáticamente en este navegador. Las alertas de vencimiento se recalculan al abrir el archivo.</div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const USER='LZU410', PASS='410';
+      const LOGIN_KEY='control_bus_login_ok_v2';
+      const CHECK_KEY='control_integral_bus_checks_v2';
+      const EDITOR_KEY='control_integral_bus_editor_v2';
+      const INVEST_KEY='control_integral_bus_investments_v2';
+      const loginView=document.getElementById('loginView');
+      const appView=document.getElementById('appView');
+      const loginBtn=document.getElementById('loginBtn');
+      const userInput=document.getElementById('username');
+      const passInput=document.getElementById('password');
+      const loginError=document.getElementById('loginError');
+      function nowParts(){const d=new Date(); return {date:d.toLocaleDateString('es-CO'), time:d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})};}
+      function showApp(){loginView.classList.add('hidden');appView.classList.remove('hidden');initApp();}
+      loginBtn.addEventListener('click', function(){
+        if(userInput.value.trim()===USER && passInput.value===PASS){localStorage.setItem(LOGIN_KEY,'1');showApp();}
+        else{loginError.textContent='Usuario o clave incorrectos.';}
+      });
+      passInput.addEventListener('keydown', function(e){if(e.key==='Enter') loginBtn.click();});
+      userInput.addEventListener('keydown', function(e){if(e.key==='Enter') passInput.focus();});
+      if(localStorage.getItem(LOGIN_KEY)==='1'){showApp();}
+      function initApp(){
+        if(window.__appInit) return; window.__appInit=true;
+        let tasks=Array.from(document.querySelectorAll('.task'));
+        const doneCount=document.getElementById('doneCount'); const totalCount=document.getElementById('totalCount'); const barFill=document.getElementById('barFill'); const progressText=document.getElementById('progressText');
+        const editorName=document.getElementById('editorName'); const editorDate=document.getElementById('editorDate'); const editorTime=document.getElementById('editorTime'); const editorObs=document.getElementById('editorObs');
+        const editorNameView=document.getElementById('editorNameView'); const editorDateView=document.getElementById('editorDateView'); const editorTimeView=document.getElementById('editorTimeView');
+        const p=nowParts(); editorDate.value=p.date; editorTime.value=p.time;
+        function bindTaskListeners(){tasks=Array.from(document.querySelectorAll('.task')); tasks.forEach(t=>{ if(!t.dataset.bound){t.addEventListener('change', updateProgress); t.dataset.bound='1';} }); }
+        function updateProgress(){bindTaskListeners(); const done=tasks.filter(t=>t.checked).length; const total=tasks.length; const pct=total?Math.round(done*100/total):0; doneCount.textContent=done; totalCount.textContent=total; barFill.style.width=pct+'%'; progressText.textContent=pct+'% completado'; tasks.forEach(t=>{const row=t.closest('.item'); if(!row) return; row.classList.toggle('done', t.checked);}); localStorage.setItem(CHECK_KEY, JSON.stringify(tasks.map(t=>t.checked)));}
+        function loadChecks(){bindTaskListeners(); try{const raw=localStorage.getItem(CHECK_KEY); if(raw){const arr=JSON.parse(raw); tasks.forEach((t,i)=>t.checked=!!arr[i]);}}catch(e){} updateProgress();}
+        function saveEditor(){const data={name:editorName.value.trim(), date:editorDate.value.trim(), time:editorTime.value.trim(), obs:editorObs.value}; localStorage.setItem(EDITOR_KEY, JSON.stringify(data)); editorNameView.textContent=data.name||'No registrado'; editorDateView.textContent=data.date||'--'; editorTimeView.textContent=data.time||'--';}
+        function loadEditor(){try{const raw=localStorage.getItem(EDITOR_KEY); if(raw){const data=JSON.parse(raw); editorName.value=data.name||''; editorDate.value=data.date||p.date; editorTime.value=data.time||p.time; editorObs.value=data.obs||''; editorNameView.textContent=data.name||'No registrado'; editorDateView.textContent=data.date||'--'; editorTimeView.textContent=data.time||'--'; return;}}catch(e){} editorNameView.textContent='No registrado'; editorDateView.textContent=editorDate.value; editorTimeView.textContent=editorTime.value;}
+        document.getElementById('saveEditorInfo').addEventListener('click', saveEditor);
+        document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+        document.getElementById('resetBtn').addEventListener('click', ()=>{Array.from(document.querySelectorAll('.task')).forEach(t=>t.checked=false); updateProgress();});
+        document.getElementById('logoutBtn').addEventListener('click', ()=>{localStorage.removeItem(LOGIN_KEY); location.reload();});
+        const buttons=Array.from(document.querySelectorAll('.tab-btn')); const panes=Array.from(document.querySelectorAll('.tab-pane')); function showTab(name){buttons.forEach(b=>b.classList.toggle('active', b.dataset.tab===name)); panes.forEach(pane=>pane.classList.toggle('active', pane.id==='tab-'+name));} buttons.forEach(b=>b.addEventListener('click', ()=>showTab(b.dataset.tab))); showTab('operativo');
+        const search=document.getElementById('contactSearch'); if(search){const cards=Array.from(document.querySelectorAll('.contact-item')); search.addEventListener('input', function(){const q=this.value.trim().toLowerCase(); cards.forEach(c=>{const text=(c.dataset.search||'').toLowerCase(); c.classList.toggle('hide', q && !text.includes(q));});});}
+        function daysUntil(dateString){const today=new Date(); today.setHours(0,0,0,0); const target=new Date(dateString+'T00:00:00'); return Math.ceil((target-today)/86400000);}
+        function renderExpiry(cardId, valueId, detailId, dateString){const card=document.getElementById(cardId), value=document.getElementById(valueId), detail=document.getElementById(detailId); const days=daysUntil(dateString); card.classList.remove('status-ok','status-warn','status-danger','status-neutral'); if(days<0){value.textContent='Vencido'; detail.textContent='Venció hace '+Math.abs(days)+' día(s).'; card.classList.add('status-danger');} else if(days===0){value.textContent='Vence hoy'; detail.textContent='Faltan 0 días para el vencimiento.'; card.classList.add('status-danger');} else {value.textContent=days+(days===1?' día':' días'); detail.textContent='Faltan '+days+' días para el vencimiento.'; if(days<30) card.classList.add('status-danger'); else if(days<60) card.classList.add('status-warn'); else card.classList.add('status-ok');}}
+        const investmentList=document.getElementById('investmentList'); const addInvestmentBtn=document.getElementById('addInvestmentBtn'); const newInvestmentTitle=document.getElementById('newInvestmentTitle'); const newInvestmentDesc=document.getElementById('newInvestmentDesc');
+        function createInvestmentItem(title, desc){const label=document.createElement('label'); label.className='item'; label.innerHTML='<input type="checkbox" class="task"><div class="txt"><strong>'+title.replace(/</g,'&lt;')+'</strong><span class="muted">'+(desc||'').replace(/</g,'&lt;')+'</span></div>'; return label;}
+        function saveInvestments(){const custom=Array.from(investmentList.querySelectorAll('[data-custom="1"]')).map(el=>({title:el.querySelector('strong').textContent, desc:el.querySelector('.muted').textContent})); localStorage.setItem(INVEST_KEY, JSON.stringify(custom));}
+        function loadInvestments(){try{const raw=localStorage.getItem(INVEST_KEY); if(raw){JSON.parse(raw).forEach(item=>{const el=createInvestmentItem(item.title,item.desc); el.setAttribute('data-custom','1'); investmentList.appendChild(el);});}}catch(e){}}
+        addInvestmentBtn.addEventListener('click', function(){const title=newInvestmentTitle.value.trim(); const desc=newInvestmentDesc.value.trim(); if(!title) return; const el=createInvestmentItem(title, desc); el.setAttribute('data-custom','1'); investmentList.appendChild(el); newInvestmentTitle.value=''; newInvestmentDesc.value=''; bindTaskListeners(); saveInvestments(); updateProgress();});
+        bindTaskListeners(); loadInvestments(); loadChecks(); loadEditor(); renderExpiry('betaCard','betaDays','betaDetail','2026-06-01'); renderExpiry('soatCard','soatDays','soatDetail','2026-11-25');
+      }
+    })();
+  </script>
+</body>
+</html>
